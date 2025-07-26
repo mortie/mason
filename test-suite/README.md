@@ -12,7 +12,7 @@ The folder `alt-json-suite` contains files which were marked with `n_`
 in JSONTestSuite, but which are valid MASON files and therefore changed
 to start with `y_`.
 
-The folder `mason-suite` are MASON-specific. This folder contains:
+The folder `mason-suite` contains MASON-specific files. This folder contains:
 
 * Files starting with `n_`, which should be rejected by MASON parsers
 * Pairs of files starting with `y_`, one ending in `.mason` and one ending in `.json`.
