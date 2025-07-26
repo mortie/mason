@@ -1,3 +1,5 @@
+![MASON Logo](./mason-logo.png)
+
 # MASON: Mort's Adorable and Sensible Object Notation
 
 MASON is a JSON variant which aims to be well-suited for humans to read and write.
