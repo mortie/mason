@@ -1,0 +1,9 @@
+name: "My Document"
+windowsPath: r"C:\Users\MASON\"
+fileMode: 0o755 // World readable, owner-writable
+tags: [
+    "cool"
+    "mason"
+    "document"
+]
+content: b"abcd\x45\xf7"

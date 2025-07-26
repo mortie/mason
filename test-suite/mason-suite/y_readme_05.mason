@@ -1,0 +1,6 @@
+myarray: [
+    "Lots of values"
+    "separated by newlines"
+    "and some by comma",
+    1, 2, 3, 4,
+]
