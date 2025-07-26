@@ -76,6 +76,24 @@ praser written in JavaScript.
 
 ## Comparison with other JSON-like formats
 
+I will not evangelize for MASON and tell you to abandon all other formats.
+However, there are reasons why I chose to make a new format instead of
+just using the existing ones.
+(And it's not *just* that I like defining grammars and writing parsers,
+although that does play a role)
+
+### TOML
+
+Honestly, TOML is great.
+If you're looking for something INI-like instead of something JSON-like,
+and JSON backwards compatibility has no value to you,
+you should probably just use TOML.
+
+I just hope they actually
+[release TOML 1.1.0](https://github.com/toml-lang/toml/issues/928) soon,
+there are lots of improvements in TOML 1.1 that makes it
+a significantly better language than TOML 1.0...
+
 ### JSON5
 
 Before making MASON, [JSON5](https://json5.org/) was my preferred JSON-like format.
@@ -110,9 +128,36 @@ to memorize rules for which exact symbols are allowed in which parts of
 an unquoted string.
 No thanks.
 
+### HOCON
+
+[HOCON](https://github.com/lightbend/config/blob/main/HOCON.md)
+seems way over-complicated to me.
+It shares the "unquoted strings" problem of Hjson,
+and the reliance on a Unicode character database problem of JSON5.
+It has "enterprise Java" vibes, with the ability to include stuff
+from arbitrary URLs, and it can include stuff Java class files by class path.
+
+It's not my cup of tea.
+
+### Various non-standard "JSON with comments" type formats
+
+I mean, these are alright.
+But since they aren't really proper documented formats,
+they can cause interoperability issues when different tools
+written in different languages want to read the same JSON-with-comments file.
+"JSON with comments" usually ends up being "whatever my chosen JSON library
+happens to do when I enable its comments feature".
+
+If you do want just "JSON with comments",
+at least try to follow
+[JWCC](https://nigeltao.github.io/blog/2021/json-with-commas-comments.html).
+
 ### YAML
 
 Just... No.
+
+Enough collective ink has been spilled criticising the YAML file format.
+If you somehow like YAML, use it. I won't.
 
 ## Incompatibilities with JSON
 
