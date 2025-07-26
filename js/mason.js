@@ -76,11 +76,11 @@ class Reader {
 	expectCh(expected) {
 		let ch = this.peek();
 		if (!ch) {
-			this.err("Got unexpected EOF, expected: " + expected);
+			this.err("Got unexpected EOF, expected: '" + expected + "'");
 		}
 
 		if (ch != expected) {
-			this.err("Got unexpected '" + ch + "', expected: " + expected);
+			this.err("Got unexpected '" + ch + "', expected: '" + expected + "'");
 		}
 	}
 
@@ -174,6 +174,17 @@ function skipSep(r) {
 		return true;
 	}
 
+	if (ch == '/' && r.peek2() == '/') {
+		r.consume();
+		r.consume();
+		while (true) {
+			ch = r.get();
+			if (ch == null || ch == '\n') {
+				return true;
+			}
+		}
+	}
+
 	return false;
 }
 
@@ -202,7 +213,6 @@ function parseHex(r, n) {
 		n -= 1;
 	}
 
-	console.log("Parsed hex:", num);
 	return num;
 }
 
@@ -231,6 +241,8 @@ function parseStringEscapeChar(ch) {
 		return '"';
 	} else if (ch == '\\') {
 		return '\\';
+	} else if (ch == '/') {
+		return '/';
 	} else if (ch == 'b') {
 		return '\b';
 	} else if (ch == 'f') {
@@ -260,22 +272,6 @@ function parseStringEscape(r) {
 	let esc = parseStringEscapeChar(ch);
 	if (esc != null) {
 		return esc;
-	}
-
-	if (ch == '"') {
-		return '"';
-	} else if (ch == '\\') {
-		return '\\';
-	} else if (ch == 'b') {
-		return '\b';
-	} else if (ch == 'f') {
-		return '\f';
-	} else if (ch == 'n') {
-		return '\n';
-	} else if (ch == 'r') {
-		return '\r';
-	} else if (ch == 't') {
-		return '\t';
 	}
 
 	if (ch == 'x') {
@@ -445,7 +441,12 @@ function charValue(r, ch) {
  * @returns number
  */
 function parseInteger(r, radix) {
-	r.expectRx(/[0-9a-fA-F]/);
+	if (radix == 10) {
+		r.expectRx(/[0-9]/)
+	} else {
+		r.expectRx(/[0-9a-fA-F]/);
+	}
+
 	let num = 0;
 	while (true) {
 		let ch = r.peek();
@@ -566,23 +567,19 @@ function parseKey(r) {
 
 /**
  * @param {Reader} r
+ * @param {string} key
  * @returns object
  */
-function parseKeyValuePairs(r) {
+function parseKeyValuePairsAfterKey(r, key) {
 	let obj = {};
 	while (true) {
-		let key = parseKey(r);
-		if (obj.hasOwnProperty(key)) {
-			r.err("Duplicate key: '" + key + "'");
-		}
-
-		skipWhitespace(r);
 		r.skipCh(':');
 		skipWhitespace(r);
-		let val = parseMasonValue(r);
+		let val = parseValue(r);
 		obj[key] = val;
 
 		let hasSep = skipSep(r);
+		skipWhitespace(r);
 		let ch = r.peek();
 		if (ch == '}' || ch == null) {
 			return obj;
@@ -591,7 +588,20 @@ function parseKeyValuePairs(r) {
 		if (!hasSep) {
 			r.err("Expected separator, '}' or EOF, got: '" + ch + "'");
 		}
+
+		key = parseKey(r);
+		skipWhitespace(r);
 	}
+}
+
+/**
+ * @param {Reader} r
+ * @returns object
+ */
+function parseKeyValuePairs(r) {
+	const key = parseKey(r);
+	skipWhitespace(r);
+	return parseKeyValuePairsAfterKey(r, key);
 }
 
 /**
@@ -601,6 +611,11 @@ function parseKeyValuePairs(r) {
 function parseObject(r) {
 	r.skipCh('{');
 	skipWhitespace(r);
+	if (r.peek() == '}') {
+		r.consume();
+		return {};
+	}
+
 	let obj = parseKeyValuePairs(r);
 	skipWhitespace(r);
 	r.skipCh('}');
@@ -614,10 +629,14 @@ function parseObject(r) {
 function parseArray(r) {
 	r.skipCh('[');
 	skipWhitespace(r);
+	if (r.peek() == ']') {
+		r.consume();
+		return [];
+	}
 
 	let arr = [];
 	while (true) {
-		let val = parseMasonValue(r);
+		let val = parseValue(r);
 		arr.push(val);
 		let hasSep = skipSep(r);
 		let ch = r.peek();
@@ -636,14 +655,15 @@ function parseArray(r) {
 
 	skipWhitespace(r);
 	r.skipCh(']');
-	return obj;
+	return arr;
 }
 
 /**
  * @param {Reader} r
+ * @param {boolean} topLevel
  * @returns object|Array|boolean|string|Uint8Array|null
  */
-function parseMasonValue(r) {
+function parseValue(r, topLevel = false) {
 	let ch = r.peek();
 	if (ch == null) {
 		r.err("Unexpected EOF");
@@ -657,13 +677,20 @@ function parseMasonValue(r) {
 		return parseString(r);
 	} else if (ch == 'r') {
 		return parseRawString(r);
-	} else if (ch == '+' || ch == '-' || /[0-9]/.test(ch)) {
+	} else if (/[0-9\+\-\.]/.test(ch)) {
 		return parseNumber(r);
 	} else if (ch == 'b' && r.peek2() == '"') {
 		return parseBinaryString(r);
 	}
 
 	let ident = parseIdentifier(r);
+	if (topLevel) {
+		skipWhitespace(r);
+		if (r.peek() == ':') {
+			return parseKeyValuePairsAfterKey(r, ident);
+		}
+	}
+
 	if (ident == "null") {
 		return null;
 	} else if (ident == "true") {
@@ -678,30 +705,9 @@ function parseMasonValue(r) {
 }
 
 /**
- * @param {Reader} r
- * @returns object
- */
-function parseMason(r) {
-	skipWhitespace(r)
-	let obj;
-	if (r.peek() == '{') {
-		obj = parseObject(r);
-	} else {
-		obj = parseKeyValuePairs(r);
-	}
-
-	skipWhitespace(r);
-	if (r.peek() != null) {
-		r.err("Trailing garbage after document");
-	}
-
-	return obj;
-}
-
-/**
  * Parse a MASON document.
  * @param {string} str
- * @returns object
+ * @returns object|Array|boolean|string|Uint8Array|null
  */
 export function parse(str) {
 	if (typeof str != "string") {
@@ -709,29 +715,12 @@ export function parse(str) {
 	}
 
 	let r = new Reader(str);
-	return parseMason(r);
-}
-
-/**
- * Parse a single MASON value.
- * Note: this function cannot be used to parse a MASON document,
- * since it does not support omitting the outermost layer of braces
- * from objects.
- * @param {string} str
- * @returns object|Array|boolean|string|Uint8Array|null
- */
-export function parseValue(str) {
-	if (typeof str != "string") {
-		throw new TypeError("mason.parseValue expects a string");
-	}
-
-	let r = new Reader(str);
 	skipWhitespace(r);
-	let val = parseMason(r);
+	const val = parseValue(r, true);
 
 	skipWhitespace(r);
 	if (r.peek() != null) {
-		r.err("Trailing garbage after value");
+		r.err("Trailing garbage after document");
 	}
 
 	return val;

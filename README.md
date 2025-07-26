@@ -61,7 +61,7 @@ this: "is a value" // Another comment
 * Binary strings: `b"look at my values: \xff\xfe\xef\x00"`
 * Hex, binary and octal: `0xffef`, `0b00101101`, `0o755`
 * Decimals with omitted leading zero: `.34`
-* Leading positive sign: `+0.3'`, `-.7`, `+.9`
+* Leading positive sign: `+0.3`, `-.7`, `+.9`
 
 ## Syntax
 

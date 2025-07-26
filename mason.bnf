@@ -1,8 +1,9 @@
 space ::= ([ ] | [\\t])*
-ws ::= ([ ] | [\\r] | [\\n] | [\\t] | '//' [any character other than line feed]* [\\n])*
-sep ::= space ([\\r]? [\\n] | ',') ws
+comment ::= '//' [any character other than line feed]* [\\n]
+ws ::= ([ ] | [\\r] | [\\n] | [\\t] | comment)*
+sep ::= space ([\\r]? [\\n] | ',' | comment) ws
 
-document ::= ws (object | key-value-pairs)? ws
+document ::= ws (value | key-value-pairs)? ws
 
 key-value-pair ::= key ws ':' ws value
 key-value-pairs ::= key-value-pair ws ','? | key-value-pair sep key-value-pairs
@@ -16,7 +17,8 @@ array ::= '[' ws array-values? ws ']'
 
 string-char ::=
 	[any UTF-8 character except backslash or double quote] |
-	'\\' '"' | '\\' '\\' | '\\' 'b' | '\\' 'f' | '\\' 'n' | '\\' 'r' | '\\' 't' |
+	'\\' '"' | '\\' '\\' | '\\' '/' | '\\' 'b' |
+	'\\' 'f' | '\\' 'n' | '\\' 'r' | '\\' 't' |
 	'\\' 'x' [2 hex digits] |
 	'\\' 'u' [4 hex digits] |
 	'\\' 'U' [6 hex digits]
