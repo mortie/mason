@@ -1,0 +1,50 @@
+space ::= ([ ] | [\\t])*
+ws ::= ([ ] | [\\r] | [\\n] | [\\t] | '//' [any character other than line feed]* [\\n])*
+sep ::= space ([\\r]? [\\n] | ',') ws
+
+document ::= ws (object | key-value-pairs)? ws
+
+key-value-pair ::= key ws ':' ws value
+key-value-pairs ::= key-value-pair ws ','? | key-value-pair sep key-value-pairs
+object ::= '{' ws key-val-pairs? ws '}'
+
+key ::= identifier | string
+identifier ::= [a-zA-Z_][a-zA-Z0-9_]*
+
+array-values ::= value ws ','? | value sep array-values
+array ::= '[' ws array-values? ws ']'
+
+string-char ::=
+	[any UTF-8 character except backslash or double quote] |
+	'\\' '"' | '\\' '\\' | '\\' 'b' | '\\' 'f' | '\\' 'n' | '\\' 'r' | '\\' 't' |
+	'\\' 'x' [2 hex digits] |
+	'\\' 'u' [4 hex digits] |
+	'\\' 'U' [6 hex digits]
+string ::= '"' string-char* '"'
+
+bstring-char ::=
+	[any ASCII character except backslash or double quote] |
+	'\\' '"' | '\\' '\\' | '\\' 'b' | '\\' 'f' | '\\' 'n' | '\\' 'r' | '\\' 't' |
+	'\\' 'x' [2 hex chars]
+bstring ::= 'b"' bstring-char* '"'
+
+rstring ::=
+	'r' [N * '#'] '"'
+	[any UTF-8 character except " followed by N * '#']
+	'"' [N * '#']
+
+radix-number ::= (
+		(digit (digit | '\'')*) |
+		(digit (digit | '\'')* '.' (digit | '\'')+) |
+		('.' digit (digit | '\'')*))
+
+number ::= ('+' | '-')? (
+	('0x' [radix-number with digit=0-9a-fA-F]) |
+	('0o' [radix-number with digit=0-7]) |
+	('0b' [radix-number with digit=0-1]) | (
+		[radix-number with digit=0-9])
+		(('e' | 'E') ('-' | '+')? digit (digit | '\'')*)?)
+
+bool ::= 'true' | 'false'
+null ::= 'null'
+value ::= object | array | string | bstring | rstring | number | bool | null
