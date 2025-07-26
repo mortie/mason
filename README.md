@@ -135,7 +135,7 @@ seems way over-complicated to me.
 It shares the "unquoted strings" problem of Hjson,
 and the reliance on a Unicode character database problem of JSON5.
 It has "enterprise Java" vibes, with the ability to include stuff
-from arbitrary URLs, and it can include stuff Java class files by class path.
+from arbitrary URLs, and it can include data from Java class files by class path.
 
 It's not my cup of tea.
 
