@@ -103,6 +103,26 @@ class Reader {
 }
 
 /**
+ * Skip a block comment.
+ * @param {Reader} r
+ */
+function skipBlockComment(r) {
+	r.skipCh('/');
+	r.skipCh('*');
+	while (true) {
+		let ch = r.get();
+		if (ch == null) {
+			r.err("Unexpected EOF");
+		}
+
+		if (ch == '*' && r.peek() == '/') {
+			r.consume();
+			break;
+		}
+	}
+}
+
+/**
  * Skip whitespace and comments.
  * @param {Reader} r
  */
@@ -126,6 +146,11 @@ function skipWhitespace(r) {
 			continue;
 		}
 
+		if (ch == '/' && r.peek2() == '*') {
+			skipBlockComment(r);
+			continue;
+		}
+
 		break;
 	}
 }
@@ -139,6 +164,11 @@ function skipSpace(r) {
 		let ch = r.peek();
 		if (ch == ' ' || ch == '\t') {
 			r.consume();
+			continue;
+		}
+
+		if (ch == '/' && r.peek2() == '*') {
+			skipBlockComment(r);
 			continue;
 		}
 

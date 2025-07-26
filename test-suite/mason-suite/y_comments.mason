@@ -1,0 +1,16 @@
+/**
+ * This is a multi line block comment
+ */
+
+/*
+ * This too */
+
+/* This is a single line */
+
+///*This is weird*/
+
+/* // This too */
+
+a: "a" // This is a separator comment
+b: "b" /* This is not a separator */
+c: "c"

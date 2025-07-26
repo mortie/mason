@@ -1,7 +1,8 @@
-space ::= ([ ] | [\\t])*
-comment ::= '//' [any character other than line feed]* [\\n]
-ws ::= ([ ] | [\\r] | [\\n] | [\\t] | comment)*
-sep ::= space ([\\r]? [\\n] | ',' | comment) ws
+line-comment ::= '//' [any Unicode character other than line feed]* [\\n]
+block-comment ::= '/*' [any Unicode character]* '*/'
+space ::= ([ ] | [\\t] | block-comment)*
+ws ::= ([ ] | [\\r] | [\\n] | [\\t] | block-comment | line-comment)*
+sep ::= space ([\\r]? [\\n] | ',' | line-comment) ws
 
 document ::= ws (value | key-value-pairs)? ws
 
@@ -16,7 +17,7 @@ array-values ::= value ws ','? | value sep array-values
 array ::= '[' ws array-values? ws ']'
 
 string-char ::=
-	[any UTF-8 character except backslash or double quote] |
+	[any Unicode character except backslash or double quote] |
 	'\\' '"' | '\\' '\\' | '\\' '/' | '\\' 'b' |
 	'\\' 'f' | '\\' 'n' | '\\' 'r' | '\\' 't' |
 	'\\' 'x' [2 hex digits] |
@@ -32,7 +33,7 @@ bstring ::= 'b"' bstring-char* '"'
 
 rstring ::=
 	'r' [N * '#'] '"'
-	[any UTF-8 character except " followed by N * '#']
+	[any Unicode character except " followed by N * '#']
 	'"' [N * '#']
 
 radix-number ::= (
