@@ -34,17 +34,17 @@ rstring ::=
 	[any Unicode character except " followed by N * '#']
 	'"' [N * '#']
 
-radix-number ::= (
-		(digit (digit | '\'')*) |
-		(digit (digit | '\'')* '.' (digit | '\'')+) |
-		('.' digit (digit | '\'')*))
+decimal-number ::= (
+		([0-9] ([0-9] | '\'')*) |
+		([0-9] ([0-9] | '\'')* '.' ([0-9] | '\'')+) |
+		('.' [0-9] ([0-9] | '\'')*))
+	(('e' | 'E') ('-' | '+')? [0-9] ([0-9] | '\'')*)?
 
 number ::= ('+' | '-')? (
-	('0x' [radix-number with digit=0-9a-fA-F]) |
-	('0o' [radix-number with digit=0-7]) |
-	('0b' [radix-number with digit=0-1]) | (
-		[radix-number with digit=0-9])
-		(('e' | 'E') ('-' | '+')? digit (digit | '\'')*)?)
+	('0x' [0-9a-zA-Z] ([0-9a-zA-Z] | '\'')*) |
+	('0o' [0-7] ([0-7] | '\'')*) |
+	('0b' [0-1] ([0-1] | '\'')*) |
+	decimal-number)
 
 bool ::= 'true' | 'false'
 null ::= 'null'
