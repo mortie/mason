@@ -71,10 +71,10 @@ See [mason.bnf](./mason.bnf) for a description of the MASON syntax in BNF.
 
 See [mason.png](./mason.png) for a railroad diagram rendered from the BNF.
 
-## Implementation
+## Implementations
 
-See [js/mason.js](./js/mason.js) for a reference implementation of a MASON
-praser written in JavaScript.
+* [mason-js](https://github.com/mortie/mason-js),
+  a JavaScript implementation written by me
 
 ## Comparison with other JSON-like formats
 
