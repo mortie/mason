@@ -4,8 +4,6 @@ space ::= ([ ] | [\\t] | block-comment)*
 ws ::= ([ ] | [\\r] | [\\n] | [\\t] | block-comment | line-comment)*
 sep ::= space ([\\r]? [\\n] | ',' | line-comment) ws
 
-document ::= ws (value | key-value-pairs)? ws
-
 key-value-pair ::= key ws ':' ws value
 key-value-pairs ::= key-value-pair ws ','? | key-value-pair sep key-value-pairs
 object ::= '{' ws key-val-pairs? ws '}'
@@ -51,3 +49,5 @@ number ::= ('+' | '-')? (
 bool ::= 'true' | 'false'
 null ::= 'null'
 value ::= object | array | string | bstring | rstring | number | bool | null
+
+document ::= ws (value | key-value-pairs)? ws
