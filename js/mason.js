@@ -257,7 +257,7 @@ function parseIdentifier(r) {
 
 	do {
 		ident += r.get();
-	} while (r.peekMatches(/[a-zA-Z0-9_]/));
+	} while (r.peekMatches(/[a-zA-Z0-9_\-]/));
 	return ident;
 }
 
