@@ -14,7 +14,8 @@ params.push("<file>");
 let tests = 0;
 let successes = 0;
 
-function runMasonParser(path) {
+function runMasonParser(file) {
+	const path = `${import.meta.dirname}/${file}`;
 	return new Promise((resolve, reject) => {
 		params[params.length - 1] = path;
 		const child = spawn(cmd, params);
@@ -141,7 +142,7 @@ async function runJsonTests(dir) {
 		return name;
 	}
 
-	for (const name of fs.readdirSync(dir)) {
+	for (const name of fs.readdirSync(`${import.meta.dirname}/${dir}`)) {
 		if (count >= 10) {
 			const res = await Promise.any(promises);
 			promises.splice(promises.indexOf(promiseMap.get(res)), 1);
@@ -158,7 +159,8 @@ async function runJsonTests(dir) {
 
 async function runMasonTransformTest(dir, masonName) {
 	let jsonName = masonName.replace(/\.mason$/, ".json");
-	const jsonContent = fs.readFileSync(`${dir}/${jsonName}`, "utf-8").trim();
+	const jsonPath = `${import.meta.dirname}/${dir}/${jsonName}`;
+	const jsonContent = fs.readFileSync(jsonPath, "utf-8");
 	const jsonObj = JSON.parse(jsonContent);
 
 	let masonObj;
@@ -181,7 +183,7 @@ async function runMasonTransformTest(dir, masonName) {
 }
 
 async function runMasonTests(dir) {
-	for (const name of fs.readdirSync(dir)) {
+	for (const name of fs.readdirSync(`${import.meta.dirname}/${dir}`)) {
 		if (name.endsWith(".json")) {
 			continue;
 		}
