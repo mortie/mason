@@ -28,11 +28,11 @@ The main things which differentiate MASON from JSON are:
 * The outermost layer of braces can be omitted:
 
 ```
-look: "ma"
-no: "braces"
+look: "ma",
+no: "braces",
 ```
 
-* Values can be separated by newlines instead of commas:
+* Values can be separated by newlines or commas:
 
 ```
 hello: "world"
