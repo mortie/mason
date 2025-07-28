@@ -20,10 +20,10 @@ function runMasonParser(file) {
 		params[params.length - 1] = path;
 		const child = spawn(cmd, params);
 
-		let done = false;
+		let result = null;
+
 		const timeout = setTimeout(() => {
-			done = true;
-			reject(new Error("Timeout"));
+			result = "TIMEOUT";
 			child.kill("SIGKILL");
 		}, 1000);
 
@@ -32,34 +32,34 @@ function runMasonParser(file) {
 		child.stdout.on("data", d => stdouts.push(d));
 		child.stderr.on("data", d => stderrs.push(d));
 		child.on("exit", (code, status) => {
+			clearTimeout(timeout);
 			const stdout = Buffer.concat(stdouts).toString("utf-8");
-			const stderr = Buffer.concat(stderrs).toString("utf-8").trim();
+			let stderr = Buffer.concat(stderrs).toString("utf-8").trim();
+			if (stderr != "") {
+				stderr = stderr.split("\n").map(l => "> " + l).join("\n") + "\n";
+			}
+
+			if (result != null) {
+				reject({result, stderr});
+				return;
+			}
+
 			if (status != null) {
-				clearTimeout(timeout);
-				reject(new Error(`Exited with status ${status}. stderr:\n${stderr}`));
+				stderr += `[SIGNAL: ${status}]\n`;
+				reject({result: "SIGNAL", stderr});
 				return;
 			}
 
 			if (code != 0) {
-				clearTimeout(timeout);
-				reject(new Error(`Exited with code ${code}. stderr:\n${stderr}`));
-				return;
-			}
-
-			if (done) {
+				stderr += `[EXIT CODE: ${code}]\n`;
+				reject({result: "PARSE-ERROR", stderr});
 				return;
 			}
 
 			try {
-				clearTimeout(timeout);
 				resolve(JSON.parse(stdout));
 			} catch (err) {
-				clearTimeout(timeout);
-				let msg = `Invalid JSON: ${stdout}`;
-				if (stderr != "") {
-					msg += `\nstderr: ${err}`;
-				}
-				reject(new Error(msg));
+				reject({result: "BAD-JSON", stdout, stderr});
 			}
 		});
 	});
@@ -146,13 +146,18 @@ async function runJsonTests(dir) {
 		try {
 			await runMasonParser(`${dir}/${name}`);
 		} catch (err) {
-			parseError = err;
+			if (err.result == "PARSE-ERROR") {
+				parseError = err;
+			} else {
+				console.log(`${dir}/${name}: ${err.result}`);
+				console.log(err.stderr);
+				return;
+			}
 		}
 
 		if (expectSuccess && parseError) {
 			console.log(`${dir}/${name}: Expected success, but failed:`);
-			console.log(parseError.message);
-			console.log();
+			console.log(parseError.stderr);
 		} else if (!expectSuccess && !parseError) {
 			console.log(`${dir}/${name}: Expected failure, but succeeded`);
 		} else {
@@ -187,8 +192,8 @@ async function runMasonTransformTest(dir, masonName) {
 	try {
 		masonObj = await runMasonParser(`${dir}/${masonName}`);
 	} catch (err) {
-		console.log(`${dir}/${masonName}: Expected success, but failed:`);
-		console.log(err.message);
+		console.log(`${dir}/${masonName}: Expected success, but failed: ${err.result}`);
+		console.log(err.stderr);
 		console.log();
 		return;
 	}
@@ -225,8 +230,14 @@ async function runMasonTests(dir) {
 		try {
 			await runMasonParser(`${dir}/${name}`);
 			console.log(`${dir}/${name}: Expected failure, but succeeded`);
-		} catch {
-			successes += 1;
+		} catch (err) {
+			if (err.result == "PARSE-ERROR") {
+				successes += 1;
+			} else {
+				console.log(`${dir}/${name}: ${err.status}:`);
+				console.log(err.stderr);
+				console.log();
+			}
 		}
 	}
 }
