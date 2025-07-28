@@ -35,11 +35,13 @@ function runMasonParser(file) {
 			const stdout = Buffer.concat(stdouts).toString("utf-8");
 			const stderr = Buffer.concat(stderrs).toString("utf-8").trim();
 			if (status != null) {
+				clearTimeout(timeout);
 				reject(new Error(`Exited with status ${status}. stderr:\n${stderr}`));
 				return;
 			}
 
 			if (code != 0) {
+				clearTimeout(timeout);
 				reject(new Error(`Exited with code ${code}. stderr:\n${stderr}`));
 				return;
 			}
