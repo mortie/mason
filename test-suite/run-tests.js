@@ -20,27 +20,44 @@ function runMasonParser(file) {
 		params[params.length - 1] = path;
 		const child = spawn(cmd, params);
 
+		let done = false;
+		const timeout = setTimeout(() => {
+			done = true;
+			reject(new Error("Timeout"));
+			child.kill("SIGKILL");
+		}, 1000);
+
 		const stdouts = [];
 		const stderrs = [];
 		child.stdout.on("data", d => stdouts.push(d));
 		child.stderr.on("data", d => stderrs.push(d));
 		child.on("exit", (code, status) => {
 			const stdout = Buffer.concat(stdouts).toString("utf-8");
-			const stderr = Buffer.concat(stderrs).toString("utf-8");
+			const stderr = Buffer.concat(stderrs).toString("utf-8").trim();
 			if (status != null) {
-				reject(new Error(`Exited with status ${status}, stderr:\n${stderr}`));
+				reject(new Error(`Exited with status ${status}. stderr:\n${stderr}`));
 				return;
 			}
 
 			if (code != 0) {
-				reject(new Error(`Exited with code ${code}, stderr:\n${stderr}`));
+				reject(new Error(`Exited with code ${code}. stderr:\n${stderr}`));
+				return;
+			}
+
+			if (done) {
 				return;
 			}
 
 			try {
+				clearTimeout(timeout);
 				resolve(JSON.parse(stdout));
 			} catch (err) {
-				reject(new Error(`Invalid JSON; stderr:\n${stderr}`));
+				clearTimeout(timeout);
+				let msg = `Invalid JSON: ${stdout}`;
+				if (stderr != "") {
+					msg += `\nstderr: ${err}`;
+				}
+				reject(new Error(msg));
 			}
 		});
 	});
@@ -131,8 +148,9 @@ async function runJsonTests(dir) {
 		}
 
 		if (expectSuccess && parseError) {
-			console.log(`${dir}/${name}: Expected success, but failed`);
-			console.log(parseError.stack);
+			console.log(`${dir}/${name}: Expected success, but failed:`);
+			console.log(parseError.message);
+			console.log();
 		} else if (!expectSuccess && !parseError) {
 			console.log(`${dir}/${name}: Expected failure, but succeeded`);
 		} else {
@@ -167,8 +185,9 @@ async function runMasonTransformTest(dir, masonName) {
 	try {
 		masonObj = await runMasonParser(`${dir}/${masonName}`);
 	} catch (err) {
-		console.log(`${dir}/${masonName}: Expected success, but failed`);
-		console.log(err);
+		console.log(`${dir}/${masonName}: Expected success, but failed:`);
+		console.log(err.message);
+		console.log();
 		return;
 	}
 
