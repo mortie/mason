@@ -143,8 +143,9 @@ async function runJsonTests(dir) {
 		process.stderr.write(`\r[${tests}] `);
 
 		let parseError = null;
+		let parseResult = null;
 		try {
-			await runMasonParser(`${dir}/${name}`);
+			parseResult = await runMasonParser(`${dir}/${name}`);
 		} catch (err) {
 			if (err.result == "PARSE-ERROR") {
 				parseError = err;
@@ -160,6 +161,17 @@ async function runJsonTests(dir) {
 			console.log(parseError.stderr);
 		} else if (!expectSuccess && !parseError) {
 			console.log(`${dir}/${name}: Expected failure, but succeeded`);
+		} else if (expectSuccess) {
+			const data = fs.readFileSync(`${import.meta.dirname}/${dir}/${name}`);
+			const jsonObj = JSON.parse(data);
+			if (!deepEqual(parseResult, jsonObj)) {
+				console.log(`${dir}/${masonName}: JSON transform failure`);
+				console.log("Expected:", jsonContent);
+				console.log("Got:     ", JSON.stringify(parseResult));
+				return;
+			}
+
+			successes += 1;
 		} else {
 			successes += 1;
 		}
@@ -244,7 +256,7 @@ async function runMasonTests(dir) {
 
 async function runTests() {
 	await runJsonTests("json-suite");
-	await runJsonTests("alt-json-suite");
+	await runMasonTests("alt-json-suite");
 	await runMasonTests("mason-suite");
 
 	console.log(`${successes}/${tests} tests succeeded.`);
