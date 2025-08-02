@@ -76,7 +76,9 @@ See [mason.png](./mason.png) for a railroad diagram rendered from the BNF.
 * [mason-js](https://github.com/mortie/mason-js),
   a JavaScript parser implementation
 * [mason-cpp](https://github.com/mortie/mason-cpp),
-  a C++ parser implementation
+  a C++ parser and serializer implementation
+* [mason-rs](https://github.com/Emilinya/mason-rs/),
+  a Rust parser implementation
 
 ## Comparison with other JSON-like formats
 
