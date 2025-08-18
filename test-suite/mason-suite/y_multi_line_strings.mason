@@ -1,8 +1,0 @@
-str: "Hello
-World"
-raw: r"Hello
-World"
-binary: b"Hello
-World"
-with-whitespace: "Hello 
- World"

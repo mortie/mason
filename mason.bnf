@@ -15,7 +15,7 @@ array-values ::= value ws ','? | value sep array-values
 array ::= '[' ws array-values? ws ']'
 
 string-char ::=
-	[any Unicode character except backslash or double quote] |
+	[any ASCII character except \\, " or control character] |
 	'\\' '"' | '\\' '\\' | '\\' '/' | '\\' 'b' |
 	'\\' 'f' | '\\' 'n' | '\\' 'r' | '\\' 't' |
 	'\\' 'x' [2 hex digits] |
@@ -24,7 +24,7 @@ string-char ::=
 string ::= '"' string-char* '"'
 
 bstring-char ::=
-	[any ASCII character except backslash or double quote] |
+	[any ASCII character except \\, " or control character] |
 	'\\' '"' | '\\' '\\' | '\\' 'b' | '\\' 'f' | '\\' 'n' | '\\' 'r' | '\\' 't' |
 	'\\' 'x' [2 hex chars]
 bstring ::= 'b"' bstring-char* '"'

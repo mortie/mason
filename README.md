@@ -4,7 +4,7 @@
 
 MASON is a JSON variant which aims to be well-suited for humans to read and write.
 Its main purpose is for config files and other human-written mediums,
-while being (almost entirely) backwards compatible with JSON.
+while being backwards compatible with JSON.
 
 ## Features
 
@@ -165,32 +165,6 @@ Just... No.
 Enough collective ink has been spilled criticising the YAML file format.
 If you somehow like YAML, use it. I won't.
 
-## Incompatibilities with JSON
-
-The only known incompatibility with JSON is related to how
-the high Unicode code points are handled in string escapes.
-In JSON, Unicode code points outside of the basic multilingual plane
-(the first 2^16 code points)
-can be represented as a pair of `\u` escapes using UTF-16 surrogate pairs.
-For example, the emoji "🙃" ("Upside-Down Face") has the code point U+1F643.
-This is too big to fit in a single `\u` escape.
-In JSON, we have to realize that U+0001F643 can be represented using
-the UTF-16 surrogate U+D83D and U+DE43,
-and then encode it as `"\uD83D\uDE43"`.
-
-In MASON, you would represent it using the `\U` escape: `"\U01F643"`.
-
-The JSON approach is strictly worse: it's harder for the human to write
-and it's really annoying for parser authors to write parsers for.
-It happens to work alright in UTF-16-native environments like
-JavaScript, but most of the world these days is UTF-8-native.
-
-The "two surrogate pair escapes resulting in a single code point" encoding
-of high code points appears rarely enough in the wild that I don't mind
-losing compatibility with it.
-When most people want emoji in their JSON,
-they just put the emoji character directly in the string.
-
 ## Semantics
 
 * MASON parsers MUST be able to uniquely parse all numbers that IEEE 754
@@ -207,3 +181,9 @@ they just put the emoji character directly in the string.
   This includes the 0 byte, and it includes byte sequences which are invalid UTF-8.
 * When converting a MASON document to a JSON document,
   binary strings SHOULD be encoded as base64 in accordance with RFC 4648.
+* Like in JSON, two `\u` escape sequences can be used to encode a single
+  Unicode code point by encoding two UTF-16 surrogate pairs.
+  For example, a string containing the Upside Down Face emoji (🙃, U+1F643)
+  can be encoded in 3 ways: the literal emoji in the string `"🙃"`,
+  the single `\U` escape `"\U01F643"`,
+  or the surrogate pair sequence `"\uD83D\uDE43"`.
