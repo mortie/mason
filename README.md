@@ -65,6 +65,19 @@ this: "is a value" // Another comment
 * Decimals with omitted leading zero: `.34`
 * Leading positive sign: `+0.3`, `-.7`, `+.9`
 
+* Multi-line strings:
+
+```
+title: "helloworld.c"
+content:
+    |#include <stdio.h>
+    |
+    |int main() {
+    |    printf("Hello World\n");
+    |    return 0;
+    |}
+```
+
 ## Syntax
 
 See [mason.bnf](./mason.bnf) for a description of the MASON syntax in BNF.
@@ -187,3 +200,21 @@ If you somehow like YAML, use it. I won't.
   can be encoded in 3 ways: the literal emoji in the string `"🙃"`,
   the single `\U` escape `"\U01F643"`,
   or the surrogate pair sequence `"\uD83D\uDE43"`.
+* Multi-line strings have a single line-feed character inserted between the lines.
+  Carriage returns before the line feed are ignored (i.e they are not part of the line).
+
+That means that this MASON document:
+
+```
+|Hello
+|World
+```
+
+is always equivalent to this JSON data:
+
+```
+"Hello\nWorld"
+```
+
+Regardless of whether the file uses CRLF (Windows-style) or LF (UNIX-style)
+line endings.
